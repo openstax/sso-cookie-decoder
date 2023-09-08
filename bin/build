@@ -11,5 +11,6 @@ yarn run esbuild \
   --platform=node \
   --define:__ENV_NAME__=\"$ENV_NAME\" \
   --external:'@aws-sdk/*' \
+  --external:'crypto' \
   --outdir=dist \
   --bundle index.ts

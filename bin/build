@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -e
+
+if [ -z "$ENV_NAME" ]; then
+    echo "ENV_NAME must be set"
+    exit 1
+fi
+
+yarn run esbuild \
+  --platform=node \
+  --define:__ENV_NAME__=\"$ENV_NAME\" \
+  --external:'@aws-sdk/*' \
+  --outdir=dist \
+  --bundle index.ts

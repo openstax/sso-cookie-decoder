@@ -2,13 +2,16 @@
 
 This project contains a Lambda@Edge function that decodes the OpenStax Accounts JWT signed cookie and sets custom HTTP headers based on its content. This is useful for applications behind a CloudFront distribution that wish to make decisions based on JWT claims without having to decode the JWT on every server or application instance.
 
+
+If a openstax SSO cookie is present on a request, it will set two headers:
+
+- os-user-uuid: The user's uuid
+- os-user: JSON encoded content of the accounts cookie
+
 ## Table of Contents
 
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Requirements
 

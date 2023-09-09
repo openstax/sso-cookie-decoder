@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-
+import { Base64 } from './b64';
 
 const GRACE_PERIOD_SECONDS = 5 * 60; // 5 minutes
 
@@ -68,13 +68,19 @@ function verifyJWT(token:string, publicKey: string) {
 }
 
 function decodeJWT(token: string, key: string) {
-    const splitInput = token.split('.');
-    const iv = Buffer.from(splitInput[2], 'base64');
+    console.log({token})
+    const parts = token.split('.');
+    if (parts.length != 5) {
+        console.log(`invalid token parts length of ${parts.length}`)
+        return null // not a JWT
+    }
+
+    const iv = Buffer.from(parts[2], 'base64');
     const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(key), iv, { authTagLength: 16 });
 
-    const aad = new TextEncoder().encode(splitInput[0]);
-    const cipherText = Buffer.from(splitInput[3], 'base64');
-    const tag = Buffer.from(splitInput[4], 'base64');
+    const aad = new TextEncoder().encode(parts[0]);
+    const cipherText = Buffer.from(parts[3], 'base64');
+    const tag = Buffer.from(parts[4], 'base64');
 
     decipher.setAAD(aad, { plaintextLength: cipherText.length });
     decipher.setAuthTag(tag);

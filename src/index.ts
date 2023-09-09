@@ -14,8 +14,8 @@ export default function handler(event: any) {
     if (!cookies) return request
 
     const user = getUserFromCookies(cookies)
-
     console.log({ user })
+
     if (!user) return request
 
     Object.assign(request.headers, {

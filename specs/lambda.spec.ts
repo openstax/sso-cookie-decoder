@@ -1,10 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { handler } from '../../index'
+import { handler } from '../src/index'
 import { CloudFrontRequestEvent } from 'aws-lambda'
-
-vi.mock('@aws-sdk/client-ssm', async () => {
-    return (await import('./mock-ssm')).mockedSSMConfig
-})
 
 
 describe('lambda handler', () => {

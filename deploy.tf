@@ -29,15 +29,33 @@ provider "aws" {
 }
 data "aws_caller_identity" "current" {}
 
-resource "aws_ssm_parameter" "cookie_secrets" {
-  name        = "/sso-cookie/${var.environment_name}"
-  description = "values for the sso cookie"
-  type        = "SecureString"
-  value = jsonencode({
-    "name"        = var.sso_cookie_name
-    "public_key"  = var.sso_cookie_public_key
-    "private_key" = var.sso_cookie_private_key
+
+resource "local_file" "cookie_config" {
+  content = jsonencode({
+    name        = var.sso_cookie_name
+    public_key  = var.sso_cookie_public_key
+    private_key = var.sso_cookie_private_key
   })
+  filename = "./tmp/cookie.json"
+}
+
+# resource "null_resource" "build_lambda" {
+#   triggers = {
+#     always_run = "${timestamp()}"
+#   }
+
+#   provisioner "local-exec" {
+#     command = "./bin/build"
+#   }
+# }
+
+
+
+resource "aws_cloudfront_function" "sso_cookie_decoder" {
+  name    = "sso-cookie-decoder"
+  runtime = "cloudfront-js-1.0"
+  publish = true
+  code    = file("${path.module}/dist/index.js")
 }
 
 module "sso_cookie_lambda" {

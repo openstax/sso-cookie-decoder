@@ -2,15 +2,11 @@
 
 set -e
 
-if [ -z "$ENV_NAME" ]; then
-    echo "ENV_NAME must be set"
-    exit 1
-fi
+yarn run rollup -c rollup.config.mjs
 
-yarn run esbuild \
-  --platform=node \
-  --define:__ENV_NAME__=\"$ENV_NAME\" \
-  --external:'@aws-sdk/*' \
-  --external:'crypto' \
-  --outdir=dist \
-  --bundle index.ts
+# esbuild \
+#   --platform=node \
+#   --target=es6 \
+#   --external:'crypto' \
+#   --outdir=dist \
+#   --bundle index.ts

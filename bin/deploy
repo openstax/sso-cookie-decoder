@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+set -euo pipefail
+
+./bin/build
+
+terraform apply $@

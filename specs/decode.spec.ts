@@ -1,10 +1,7 @@
 import { describe, test, expect, vi, afterEach } from 'vitest'
 
-import { getUserFromCookies } from '../decode'
+import { getUserFromCookies } from '../src/decode'
 
-vi.mock('@aws-sdk/client-ssm', async () => {
-    return (await import('./mock-ssm')).mockedSSMConfig
-})
 
 describe('Decoding cookie', () => {
 

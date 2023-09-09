@@ -1,7 +1,10 @@
 import * as crypto from 'crypto';
-import { cookieConfig } from './config';
+
 
 const GRACE_PERIOD_SECONDS = 5 * 60; // 5 minutes
+
+import COOKIE from '../tmp/cookie-config.json'
+
 
 type Application = {
     id: number
@@ -85,23 +88,22 @@ function decodeJWT(token: string, key: string) {
 
 }
 
-export async function getUserFromCookies(cookies: string) {
+export function getUserFromCookies(cookies: Record<string,Record<'value', string>>) {
 
-    const config = await cookieConfig()
+    // const cookiePairs = cookies.split(';').map(pair => pair.trim());
+    // let value = ''
+    // for (const pair of cookiePairs) {
+    //     const [key, encodedValue] = pair.split('=');
+    //     if (key === COOKIE.name) {
+    //         value = decodeURIComponent(encodedValue);
+    //         break;
+    //     }
+    // }
+    const cookie = cookies[COOKIE.name]
+    if (!cookie?.value) return null
 
-    const cookiePairs = cookies.split(';').map(pair => pair.trim());
-    let value = ''
-    for (const pair of cookiePairs) {
-        const [key, encodedValue] = pair.split('=');
-        if (key === config.name) {
-            value = decodeURIComponent(encodedValue);
-            break;
-        }
-    }
+    const decoded = decodeJWT(cookie.value, COOKIE.private_key)
+    if (!decoded) return null
 
-    if (!value) return null
-
-    const decoded = decodeJWT(value, config.private_key)
-
-    return verifyJWT(decoded, config.public_key).sub
+    return verifyJWT(decoded, COOKIE.public_key).sub
 }

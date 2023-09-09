@@ -1,19 +1,21 @@
 
 'use strict';
 import type { CloudFrontRequestHandler } from 'aws-lambda'
-import { getUserFromCookies } from './src/decode'
+import { getUserFromCookies } from './decode'
 
 
-export const handler:CloudFrontRequestHandler = async (event) => {
-    //console.log(JSON.stringify(event, null, 2));
+export default function handler(event: any) {
+    console.log(JSON.stringify(event, null, 2));
 
-    const { request } = event.Records[0].cf;
+    const { request } = event; // .Records[0].cf;
 
-    const cookies = request.headers.cookie?.[0]?.value
+    const cookies = request.cookies;
+    console.log({ cookies })
     if (!cookies) return request
 
-    const user = await getUserFromCookies(cookies)
-    // console.log({ user })
+    const user = getUserFromCookies(cookies)
+
+    console.log({ user })
     if (!user) return request
 
     Object.assign(request.headers, {
@@ -28,4 +30,4 @@ export const handler:CloudFrontRequestHandler = async (event) => {
     })
 
     return request
-};
+}

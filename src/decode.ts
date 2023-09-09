@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import { Base64 } from './b64';
 
 const GRACE_PERIOD_SECONDS = 5 * 60; // 5 minutes
 
@@ -31,8 +30,20 @@ type Token = {
     iss: string
 }
 
+
+export function toBuff(a: string) {
+    if ((String as any)['bytesFrom']) return (String as any).bytesFrom(a)
+    return Buffer.from(a)
+}
+
+export function b64ToBuf(a: string) {
+    if ((String as any)['bytesFrom']) return (String as any).bytesFrom(a, 'base64')
+    return Buffer.from(a, 'base64')
+}
+
+
 function base64UrlDecode(str: string) {
-    return Buffer.from(str.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    return b64ToBuf(str.replace(/-/g, '+').replace(/_/g, '/')).toString('utf8')
 }
 
 function verifyJWT(token:string, publicKey: string) {
@@ -46,7 +57,7 @@ function verifyJWT(token:string, publicKey: string) {
         throw new Error('Only RS256 is supported');
     }
 
-    const signature = Buffer.from(signatureEncoded.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+    const signature = b64ToBuf(signatureEncoded.replace(/-/g, '+').replace(/_/g, '/'))
     const verifier = crypto.createVerify('SHA256');
     verifier.update(headerEncoded + '.' + payloadEncoded);
     const isValid = verifier.verify(publicKey, signature);
@@ -67,6 +78,7 @@ function verifyJWT(token:string, publicKey: string) {
     return payload as Token;
 }
 
+
 function decodeJWT(token: string, key: string) {
     console.log({token})
     const parts = token.split('.');
@@ -75,23 +87,21 @@ function decodeJWT(token: string, key: string) {
         return null // not a JWT
     }
 
-    const iv = Buffer.from(parts[2], 'base64');
-    const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(key), iv, { authTagLength: 16 });
+    const iv = b64ToBuf(parts[2])
+
+    const decipher = crypto.createDecipheriv('aes-256-gcm', toBuff(key), iv, { authTagLength: 16 });
 
     const aad = new TextEncoder().encode(parts[0]);
-    const cipherText = Buffer.from(parts[3], 'base64');
-    const tag = Buffer.from(parts[4], 'base64');
+
+    const cipherText = b64ToBuf(parts[3])
+
+    const tag = b64ToBuf(parts[4])
 
     decipher.setAAD(aad, { plaintextLength: cipherText.length });
     decipher.setAuthTag(tag);
 
-    const result = Buffer.concat([
-        decipher.update(cipherText),
-        decipher.final(),
-    ]);
-
-    return result.toString('utf-8')
-
+    const result = decipher.update(cipherText).toString('utf8')
+    return result + decipher.final().toString('utf8')
 }
 
 export function getUserFromCookies(cookies: Record<string,Record<'value', string>>) {
